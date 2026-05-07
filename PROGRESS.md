@@ -243,17 +243,42 @@ com.example.arigo/
 
 ---
 
-### ⬜ Milestone 4 — Device Detail Screen
-- AQI status badge (Good/Normal/Bad)
-- 6-cell air quality grid
-- Purifier controls (Power ON/OFF, Auto mode)
+### ✅ Milestone 4 — Device Detail Screen (Completed)
+**What was built:**
+- Dynamic background color based on AQI status (green `#81E1AF` / yellow / red / purple) with smooth `animateColorAsState` transitions
+- Curved bottom edge on colored section (`RoundedCornerShape` 40dp)
+- AQI badge and status message positioned at bottom of colored section
+- 6-cell AIR QUALITY grid: AQI, PM2.5, PM10 (N/A), CO, NO2, SO2 (N/A) with simple colored progress bars
+- Card overlaps the curved section by -30dp for Figma-matching layered effect
+- CONTROLS section: POWER ON/OFF and AUTO buttons with `TealBadge` (`#81BFDA`) active color, transparent outlined when inactive
+- Custom icons (`ic_fan`, `ic_power`, `ic_auto`) from drawable resources
+- Live sensor data via `HardwareApiService` REST polling every 10s
+- Navigation: ">" arrow → Air Quality Analytics, "ℹ" icon → Filter Health
+
+**Files:** `DeviceDetailScreen.kt`, `DeviceDetailViewModel.kt`, `DeviceDetailState.kt`
 
 ---
 
-### ⬜ Milestone 5 — Air Quality Analytics
-- Before/after filtration line charts
-- AQI, PM2.5, CO, PM10 charts
-- Time granularity tabs
+### ✅ Milestone 5 — Air Quality Analytics (Completed)
+**What was built:**
+- Time range tabs: Hours / Minutes / Seconds with instant client-side data regrouping (no re-fetch)
+- Canvas-drawn line charts with colored background bands (green = good zone, yellow = normal zone, red = bad zone)
+- Dual lines per chart: Before Filtration (dark navy `#37474F`) vs After Filtration (green `#4CAF50`)
+- Four chart sections: AQI (/500), PM2.5 (µg/m³), Carbon Monoxide (ppm), PM10 (N/A placeholder)
+- Interactive touch tooltips: tap on chart shows time, before value, and after value at that point
+- X-axis time labels, Y-axis value labels, chart legends
+- Efficient auto-refresh: full history load once (380+ data points across 6 dates), then incremental latest-date-only refresh every 30 seconds
+- Current values in header update from latest raw data point
+- `HardwareApiService` extended with `getAllHistory()`, `getHistoryForDate()`, `getAvailableDates()`
+- Data merging: new points added without replacing existing data, deduplicated by timestamp
+
+**Files:** `AirQualityScreen.kt`, `AirQualityViewModel.kt`, `AirQualityState.kt`, updated `HardwareApiService.kt`, updated `Models.kt` (`date` field added to `AirQualityChartPoint`)
+
+**Technical notes:**
+- Hardware Firebase connected via REST API (not SDK) to avoid cross-project auth issues
+- Charts drawn using Compose Canvas with `Path.cubicTo` for smooth curves
+- Tab switching regroups cached `rawChartData` instantly — no network call
+- Network footprint optimized from ~84 req/min to ~2 req/min after initial load
 
 ---
 
