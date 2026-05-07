@@ -155,5 +155,6 @@ data class EnvironmentInfo(
     val aqi: Int = 0,
     val aqiStatus: AqiStatus = AqiStatus.GOOD,
     val dustDensity: Double = 0.0,
+    val coPpm: Double = 0.0,
     val no2Ppm: Double = 0.0
 )
