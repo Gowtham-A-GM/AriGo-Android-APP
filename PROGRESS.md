@@ -197,13 +197,23 @@ com.example.arigo/
 
 ---
 
-### ⬜ Milestone 2D — Profile Setup Screen (Next)
-**What to build:**
-- Teal header with "PROFILE" title
-- Circular avatar placeholder (tappable)
-- Form: Profile Name, Phone, DOB + Gender (side by side), Address, City + PIN (side by side), Emergency Phone, Health Issues
-- "Continue" button → save to Firebase (`users/{uid}`) → navigate to Home
-- `ProfileSetupViewModel` with `UserRepositoryImpl`
+### ✅ Milestone 2D — Profile Setup Screen (Completed)
+**What was built:**
+- Teal header with "PROFILE" title using shared `AuthHeader`
+- Circular avatar with image picker (gallery selection via `ActivityResultContracts`)
+- Form fields: Profile Name, Phone Number, Date of Birth, Gender, Address, City, PIN Number, Emergency Phone Number, Health Issues
+- Date of Birth: Material3 `DatePickerDialog` (DD/MM/YYYY format)
+- Gender: `ExposedDropdownMenu` with Male/Female/Other options
+- Phone & Emergency Phone: Professional country code picker using `ModalBottomSheet` with flag emojis, country names, and codes (India, US, UK, UAE, Singapore, Australia, Canada, Germany, France, Japan)
+- "Continue" button saves all data to Firebase Realtime Database at `users/{uid}`
+- `UserRepositoryImpl` created with save/get/observe profile functions
+- `ProfileSetupViewModel` with validation (name required) and Firebase save logic
+
+**Files:** `ProfileSetupScreen.kt`, `ProfileSetupViewModel.kt`, `ProfileSetupState.kt`, `UserRepositoryImpl.kt`, updated `AppContainer.kt`
+
+---
+
+**🎯 AUTH FLOW COMPLETE** — Splash → Login → Signup → Profile Setup all working with Firebase Auth and Realtime Database.
 
 ---
 
