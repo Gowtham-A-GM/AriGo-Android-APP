@@ -1,5 +1,6 @@
 package com.example.arigo.presentation.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,9 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Air
-import androidx.compose.material.icons.filled.AutoMode
-import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -37,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,6 +64,7 @@ import com.example.arigo.presentation.components.AuthPillButton
 import java.util.Locale
 
 private val WeatherCardBottomBg = Color(0xFFFFFFFF)
+private val FanCircleBg = CardGreen
 private val AlertBg = Color(0xFFD6E8F0)
 private val CoBlue = Color(0xFF42A5F5)
 private val WeatherTopGradientStart = Color(0xFF1B6B93) // TealHeader
@@ -73,7 +73,7 @@ private val WeatherTopGradientEnd = Color(0xFF2E9BBE)   // lighter teal
 @Composable
 fun HomeScreen(
     onDeviceClick: (String) -> Unit,
-    onAddDeviceClick: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onAddDeviceClick: () -> Unit,
     @Suppress("UNUSED_PARAMETER") onNotificationsClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
@@ -97,7 +97,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        MyDevicesHeader(onAddClick = onAddDeviceClick)
+        MyDevicesHeader(onAddClick = viewModel::openMyDevicesSheet)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -118,7 +118,7 @@ fun HomeScreen(
             AuthPillButton(
                 text = "Add a device",
                 isLoading = false,
-                onClick = onAddDeviceClick,
+                onClick = viewModel::openMyDevicesSheet,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .width(180.dp)
@@ -126,6 +126,24 @@ fun HomeScreen(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+    }
+
+    if (state.showMyDevicesSheet) {
+        MyDevicesSheet(
+            pairedDevices = state.pairedDevices,
+            onDismiss = viewModel::closeMyDevicesSheet,
+            onAddNewDevice = viewModel::openAddNewDeviceSheet,
+            onDeviceRemove = viewModel::removeDevice
+        )
+    }
+
+    if (state.showAddNewDeviceSheet) {
+        AddNewDeviceSheet(
+            onDismiss = viewModel::closeAddNewDeviceSheet,
+            onSave = viewModel::addNewDevice,
+            isLoading = state.isAddingDevice,
+            error = state.addDeviceError
+        )
     }
 }
 
@@ -407,26 +425,26 @@ private fun DeviceCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Fan icon
+            // Fan icon — 70dp PNG centered inside an 80dp light gray circle
             Box(
                 modifier = Modifier
-                    .size(72.dp)
+                    .size(80.dp)
                     .clip(CircleShape)
-                    .border(1.dp, LightGray, CircleShape),
+                    .background(FanCircleBg),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Air,
+                Image(
+                    painter = painterResource(id = R.drawable.ic_fan),
                     contentDescription = null,
-                    tint = TealHeader,
-                    modifier = Modifier.size(40.dp)
+                    colorFilter = ColorFilter.tint(TealHeader),
+                    modifier = Modifier.size(70.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             // Title + metrics
             Column(modifier = Modifier.weight(1f)) {
@@ -437,7 +455,7 @@ private fun DeviceCard(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -453,7 +471,7 @@ private fun DeviceCard(
                     Box(
                         modifier = Modifier
                             .width(1.dp)
-                            .height(60.dp)
+                            .height(70.dp)
                             .background(LightGray)
                     )
                     DeviceMetric(
@@ -473,17 +491,17 @@ private fun DeviceCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(width = 1.dp, color = LightGray, shape = RoundedCornerShape(0.dp))
-                .padding(12.dp),
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             CircleToggleButton(
-                icon = Icons.Filled.PowerSettingsNew,
+                iconRes = R.drawable.ic_power,
                 isOn = device.motorState,
                 onClick = onPowerToggle
             )
             CircleToggleButton(
-                icon = Icons.Filled.AutoMode,
+                iconRes = R.drawable.ic_auto,
                 isOn = device.isAutoMode,
                 onClick = onAutoToggle
             )
@@ -508,28 +526,29 @@ private fun DeviceMetric(
         modifier = modifier.padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = label, color = GrayText, fontSize = 12.sp)
+        Text(text = label, color = GrayText, fontSize = 11.sp)
+        Spacer(modifier = Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = value,
                 color = TealDark,
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.width(2.dp))
+            Spacer(modifier = Modifier.width(3.dp))
             Text(
                 text = unit,
                 color = GrayText,
                 fontSize = 11.sp,
-                modifier = Modifier.padding(bottom = 2.dp)
+                modifier = Modifier.padding(bottom = 3.dp)
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
                 .background(statusBg)
-                .padding(horizontal = 10.dp, vertical = 2.dp)
+                .padding(horizontal = 10.dp, vertical = 3.dp)
         ) {
             Text(
                 text = statusLabel,
@@ -543,7 +562,7 @@ private fun DeviceMetric(
 
 @Composable
 private fun CircleToggleButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    @DrawableRes iconRes: Int,
     isOn: Boolean,
     onClick: () -> Unit
 ) {
@@ -551,17 +570,17 @@ private fun CircleToggleButton(
     val borderColor = if (isOn) AqiGood else LightGray
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(44.dp)
             .clip(CircleShape)
             .border(1.dp, borderColor, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
+        Image(
+            painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(20.dp)
+            colorFilter = ColorFilter.tint(tint),
+            modifier = Modifier.size(24.dp)
         )
     }
 }

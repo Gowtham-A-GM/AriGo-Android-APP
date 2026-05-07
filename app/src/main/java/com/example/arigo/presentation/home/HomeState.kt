@@ -2,6 +2,7 @@ package com.example.arigo.presentation.home
 
 import com.example.arigo.domain.model.AqiStatus
 import com.example.arigo.domain.model.EnvironmentInfo
+import com.example.arigo.domain.model.PairedDevice
 
 data class HomeState(
     val userName: String = "",
@@ -13,7 +14,16 @@ data class HomeState(
 
     // Devices
     val devices: List<DeviceCardData> = emptyList(),
-    val hasDevices: Boolean = false
+    val hasDevices: Boolean = false,
+
+    // Paired devices (Firestore source of truth)
+    val pairedDevices: List<PairedDevice> = emptyList(),
+
+    // Add Device flow
+    val showMyDevicesSheet: Boolean = false,
+    val showAddNewDeviceSheet: Boolean = false,
+    val isAddingDevice: Boolean = false,
+    val addDeviceError: String? = null
 )
 
 data class DeviceCardData(

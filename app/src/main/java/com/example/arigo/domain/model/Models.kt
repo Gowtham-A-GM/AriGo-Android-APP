@@ -94,6 +94,17 @@ data class Device(
     val filterUsageHours: Int = 0
 )
 
+data class PairedDevice(
+    val deviceId: String = "",
+    val nickname: String = "",
+    val productId: String = "",
+    val pairedAt: String = "",
+    // Named `active` (not `isActive`) so the property name matches Firestore's
+    // serialized field name. Firestore strips the "is" prefix on Boolean getters
+    // and would otherwise warn at deserialization time.
+    val active: Boolean = true
+)
+
 data class DeviceStatus(
     val online: Boolean = false,
     val lastSeen: String = ""
