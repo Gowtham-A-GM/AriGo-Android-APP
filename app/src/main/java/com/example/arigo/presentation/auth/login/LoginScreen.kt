@@ -1,46 +1,30 @@
 package com.example.arigo.presentation.auth.login
 
 import android.widget.Toast
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,6 +37,11 @@ import com.example.arigo.R
 import com.example.arigo.core.theme.BlackText
 import com.example.arigo.core.theme.TealHeader
 import com.example.arigo.core.theme.White
+import com.example.arigo.presentation.components.AuthFieldTextStyle
+import com.example.arigo.presentation.components.AuthHeader
+import com.example.arigo.presentation.components.AuthPillButton
+import com.example.arigo.presentation.components.AuthSocialButton
+import com.example.arigo.presentation.components.authTextFieldColors
 
 @Composable
 fun LoginScreen(
@@ -81,7 +70,7 @@ fun LoginScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            LoginHeader()
+            AuthHeader(title = "LOGIN")
 
             Spacer(modifier = Modifier.height(60.dp))
 
@@ -104,7 +93,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            PrimaryPillButton(
+            AuthPillButton(
                 text = "Login",
                 isLoading = state.isLoading,
                 onClick = viewModel::login,
@@ -122,7 +111,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SocialLoginButton(
+            AuthSocialButton(
                 label = "Login with Google",
                 iconRes = R.drawable.ic_google,
                 onClick = {
@@ -147,7 +136,7 @@ fun LoginScreen(
                 fontSize = 14.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
-            PrimaryPillButton(
+            AuthPillButton(
                 text = "Signin",
                 isLoading = false,
                 onClick = onNavigateToSignup,
@@ -165,29 +154,6 @@ fun LoginScreen(
                 CircularProgressIndicator(color = TealHeader)
             }
         }
-    }
-}
-
-@Composable
-private fun LoginHeader() {
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp + topInset)
-            .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
-            .background(TealHeader)
-            .padding(top = topInset)
-    ) {
-        Text(
-            text = "LOGIN",
-            color = White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 25.dp)
-        )
     }
 }
 
@@ -212,8 +178,8 @@ private fun UsernameField(
             shape = RoundedCornerShape(5.dp),
             singleLine = true,
             isError = error != null,
-            colors = tealTextFieldColors(),
-            textStyle = FieldTextStyle,
+            colors = authTextFieldColors(),
+            textStyle = AuthFieldTextStyle,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
         if (error != null) {
@@ -250,8 +216,8 @@ private fun PasswordField(
             shape = RoundedCornerShape(5.dp),
             singleLine = true,
             isError = error != null,
-            colors = tealTextFieldColors(),
-            textStyle = FieldTextStyle,
+            colors = authTextFieldColors(),
+            textStyle = AuthFieldTextStyle,
             visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
@@ -284,96 +250,3 @@ private fun PasswordField(
         )
     }
 }
-
-@Composable
-private fun PrimaryPillButton(
-    text: String,
-    isLoading: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(44.dp),
-        shape = RoundedCornerShape(30.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TealHeader,
-            contentColor = White
-        ),
-        enabled = !isLoading
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = White,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(18.dp)
-            )
-        } else {
-            Text(
-                text = text,
-                color = White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-
-@Composable
-private fun SocialLoginButton(
-    label: String,
-    @DrawableRes iconRes: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = modifier.width(280.dp).height(44.dp),
-        shape = RoundedCornerShape(30.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, TealHeader),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = White,
-            contentColor = TealHeader
-        )
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = label,
-                color = TealHeader,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-@Composable
-private fun tealTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = TealHeader,
-    unfocusedBorderColor = TealHeader,
-    errorBorderColor = Color.Red,
-    cursorColor = TealHeader,
-    focusedTextColor = BlackText,
-    unfocusedTextColor = BlackText,
-    errorTextColor = BlackText,
-    disabledTextColor = BlackText,
-    focusedContainerColor = White,
-    unfocusedContainerColor = White,
-    errorContainerColor = White,
-    disabledContainerColor = White
-)
-
-private val FieldTextStyle = TextStyle(
-    color = BlackText,
-    fontSize = 16.sp
-)
