@@ -20,11 +20,17 @@ We use **two Firebase projects**:
 - Also has: `device_status` (online/last_seen) and `alerts` (threshold config)
 - We only READ from this — never write
 
-### 2. Our Firebase — "AriGo AirGuardPro"
+### 2. Our Firebase — "AriGo AirGuardPro" (Realtime Database)
 - Authentication: Email/Password + Google Sign-In enabled
 - Realtime Database (locked mode with custom rules)
-- Stores: user profiles (`users/{uid}`), device pairings (`user_devices/{uid}`), notifications
+- Stores: notifications, future device pairings, anything that needs streaming reads
 - We READ and WRITE to this
+
+### 3. Our Firebase — Cloud Firestore
+- User profiles moved from Realtime Database to Firestore for better structure
+- Collections: `users/{uid}` (user profile data), `user_devices/{uid}` (device pairings — future)
+- Security rules: users can only read/write their own documents
+- Realtime Database still used for sensor data from hardware team
 
 ### Firebase Security Rules (Our DB)
 
@@ -217,11 +223,23 @@ com.example.arigo/
 
 ---
 
-### ⬜ Milestone 3 — Home Dashboard
-- Weather/AQI cards (horizontally scrollable)
-- "My Devices" section with device cards
-- Live data from hardware Firebase
-- Power/Auto controls on device cards
+### ✅ Milestone 3 — Home Dashboard (Completed)
+**What was built:**
+- Mint green header with "AriGo" (Racing Sans One) + "Hello, {username}" greeting + AriGo logo
+- Full-width weather/AQI card with teal gradient top half showing city, temperature, sun icon, AQI badge, Humidity badge
+- Card bottom half with 4 data columns: AQI (/500), PM2.5 (µg/m³), CO (ppm), Ozone (DU) with colored progress bars
+- "My Devices" section with "+" add button
+- Empty state: "Add a device" button when no devices paired
+- Device card layout: fan icon, "Filter Pro" title, AQI + PM2.5 data with status badges, Power/Auto controls, alert message strip
+- `SensorDataSource` created for reading hardware team's Firebase data
+- `HomeViewModel` loads user name from Firestore, reads latest sensor data from Realtime DB
+- Firestore migration: user profiles moved from Realtime Database to Cloud Firestore
+
+**Files:** `HomeScreen.kt`, `HomeViewModel.kt`, `HomeState.kt`, `SensorDataSource.kt`, updated `UserRepositoryImpl.kt` (Firestore), updated `AppContainer.kt`
+
+---
+
+**🎯 MILESTONE 3 COMPLETE** — Home Dashboard built with weather card, device cards, and Firebase integration.
 
 ---
 
