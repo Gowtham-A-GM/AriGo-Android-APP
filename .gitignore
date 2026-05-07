@@ -1,0 +1,27 @@
+# IDE / build
+*.iml
+.gradle
+/.idea
+/.vscode
+.kotlin/
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+.DS_Store
+
+# Local config
+/local.properties
+local.properties
+
+# Firebase config — contains API keys, DO NOT commit
+app/google-services.json
+
+# Signing keys
+*.jks
+*.keystore
+
+# Environment files
+.env
+*.env
