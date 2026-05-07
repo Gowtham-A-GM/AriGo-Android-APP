@@ -1,6 +1,7 @@
 package com.example.arigo.data.remote.firebase
 
 import android.util.Log
+import com.example.arigo.domain.model.AirQualityChartPoint
 import com.example.arigo.domain.model.SensorReading
 import com.example.arigo.domain.model.SensorReadingDto
 import kotlinx.coroutines.Dispatchers
@@ -8,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 
@@ -76,6 +78,88 @@ class HardwareApiService {
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching sensor data", e)
             null
+        }
+    }
+
+    /**
+     * Returns the sorted list of date keys under
+     * `airguard_devices/{deviceId}/history`. Empty list on failure.
+     */
+    suspend fun getAvailableDates(deviceId: String): List<String> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$BASE_URL/airguard_devices/$deviceId/history.json?shallow=true"
+            val json = URL(url).readText()
+            if (json == "null" || json.isEmpty()) return@withContext emptyList()
+            val obj = JSONObject(json)
+            obj.keys().asSequence().toList().sorted()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching available dates for $deviceId", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Returns all sensor readings for a single date as a sorted list of
+     * AirQualityChartPoint entries (one per time key inside that date).
+     */
+    suspend fun getHistoryForDate(
+        deviceId: String,
+        date: String
+    ): List<AirQualityChartPoint> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$BASE_URL/airguard_devices/$deviceId/history/$date.json"
+            val json = URL(url).readText()
+            if (json == "null" || json.isEmpty()) return@withContext emptyList()
+
+            val obj = JSONObject(json)
+            val points = mutableListOf<AirQualityChartPoint>()
+            obj.keys().forEach { time ->
+                val readingObj = obj.optJSONObject(time) ?: return@forEach
+                val map = mutableMapOf<String, Any?>()
+                readingObj.keys().forEach { key ->
+                    map[key] = if (readingObj.isNull(key)) null else readingObj.get(key)
+                }
+                val dto = SensorReadingDto.fromFirebaseMap(map)
+                points += AirQualityChartPoint(
+                    timestamp = time,
+                    date = date,
+                    beforeAqi = dto.beforeAqi,
+                    afterAqi = dto.afterAqi,
+                    beforeCo = dto.coPpm,
+                    afterCo = dto.afterCoPpm,
+                    beforeDust = dto.dustDensity,
+                    afterDust = dto.afterDustDensity,
+                    beforeNo2 = dto.no2Ppm,
+                    afterNo2 = dto.afterNo2Ppm
+                )
+            }
+            Log.d(TAG, "Loaded ${points.size} chart points for $deviceId on $date")
+            points.sortedBy { it.timestamp }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching history for $deviceId on $date", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Returns ALL chart points across every available date for [deviceId], in
+     * chronological order (date asc, time asc). Each point's `timestamp` field
+     * keeps the time-of-day key ("HH:mm:ss") so callers can group by time-of-day.
+     */
+    suspend fun getAllHistory(deviceId: String): List<AirQualityChartPoint> = withContext(Dispatchers.IO) {
+        try {
+            val dates = getAvailableDates(deviceId)
+            if (dates.isEmpty()) return@withContext emptyList()
+
+            val all = mutableListOf<AirQualityChartPoint>()
+            for (date in dates) {
+                all += getHistoryForDate(deviceId, date)
+            }
+            Log.d(TAG, "Loaded ${all.size} total chart points across ${dates.size} dates")
+            all
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching all history for $deviceId", e)
+            emptyList()
         }
     }
 

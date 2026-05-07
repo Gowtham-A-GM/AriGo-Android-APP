@@ -141,7 +141,8 @@ data class FilterHealth(
 )
 
 data class AirQualityChartPoint(
-    val timestamp: String = "",
+    val timestamp: String = "",  // "HH:mm:ss" — time-of-day key from Firebase
+    val date: String = "",        // "yyyy-MM-dd" — date folder under history
     val beforeAqi: Int = 0,
     val afterAqi: Double = 0.0,
     val beforeCo: Double = 0.0,
